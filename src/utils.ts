@@ -276,7 +276,7 @@ export const convertBetString = (s: string): string => {
 
 const parseBetAmount = (s: string, index: number) => {
   let indexEnd = index;
-  while (indexEnd < s.length && /\d/.test(s[indexEnd])) indexEnd++;
+  while (indexEnd < s.length && /[\d.]/.test(s[indexEnd])) indexEnd++;
   const amount = Number(s.slice(index, indexEnd));
   return { amount, indexEnd };
 };

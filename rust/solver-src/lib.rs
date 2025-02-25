@@ -89,8 +89,8 @@ impl GameManager {
         oop_range: &[f32],
         ip_range: &[f32],
         board: &[u8],
-        starting_pot: i32,
-        effective_stack: i32,
+        starting_pot: f64,
+        effective_stack: f64,
         rake_rate: f64,
         rake_cap: f64,
         donk_option: bool,
@@ -321,10 +321,11 @@ impl GameManager {
         let mut buf = Vec::new();
 
         let total_bet_amount = game.total_bet_amount();
-        let pot_base = game.tree_config().starting_pot + total_bet_amount.iter().min().unwrap();
+        let pot_base = game.tree_config().starting_pot + total_bet_amount.iter()
+            .fold(0.0f64, |a, b| a.min(*b));
 
-        buf.push((pot_base + total_bet_amount[0]) as f64);
-        buf.push((pot_base + total_bet_amount[1]) as f64);
+        buf.push(pot_base + total_bet_amount[0]);
+        buf.push(pot_base + total_bet_amount[1]);
 
         let trunc = |&w: &f32| if w < 0.0005 { 0.0 } else { w };
         let weights = [
@@ -357,7 +358,7 @@ impl GameManager {
             buf.extend(round_iter(ev[1].iter()));
 
             for player in 0..2 {
-                let pot = (pot_base + total_bet_amount[player]) as f64;
+                let pot = pot_base + total_bet_amount[player];
                 for (&eq, &ev) in equity[player].iter().zip(ev[player].iter()) {
                     let (eq, ev) = (eq as f64, ev as f64);
                     if eq < 5e-7 {
@@ -445,7 +446,8 @@ impl GameManager {
             status[chance] = 2.0;
 
             let total_bet_amount = game.total_bet_amount();
-            let pot_base = game.tree_config().starting_pot + total_bet_amount.iter().min().unwrap();
+            let pot_base = game.tree_config().starting_pot + total_bet_amount.iter()
+                .fold(0.0f64, |a, b| a.min(*b));
 
             for player in 0..2 {
                 let pot = (pot_base + total_bet_amount[player]) as f32;

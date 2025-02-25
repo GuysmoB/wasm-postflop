@@ -83,8 +83,8 @@ fn decode_action(action: &str) -> Action {
 impl TreeManager {
     pub fn new(
         board_len: i32,
-        starting_pot: i32,
-        effective_stack: i32,
+        starting_pot: f64,
+        effective_stack: f64,
         donk_option: bool,
         oop_flop_bet: &str,
         oop_flop_raise: &str,
@@ -255,11 +255,11 @@ impl TreeManager {
         }
     }
 
-    pub fn total_bet_amount(&self) -> Box<[i32]> {
+    pub fn total_bet_amount(&self) -> Box<[f64]> {
         self.tree.total_bet_amount().to_vec().into_boxed_slice()
     }
 
-    pub fn add_bet_action(&mut self, amount: i32, is_raise: bool) {
+    pub fn add_bet_action(&mut self, amount: f64, is_raise: bool) {
         let action = match is_raise {
             false => Action::Bet(amount),
             true => Action::Raise(amount),

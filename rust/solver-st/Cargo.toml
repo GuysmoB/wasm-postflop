@@ -10,8 +10,9 @@ crate-type = ["cdylib"]
 path = "../solver-src/lib.rs"
 
 [dependencies]
-postflop-solver = { git = "https://github.com/b-inary/postflop-solver", features = ["custom-alloc"], default-features = false }
-wasm-bindgen = "0.2.87"
+postflop-solver = { git = "https://github.com/ildar-faizov/postflop-solver", features = ["custom-alloc"], default-features = false }
+#postflop-solver = { path = "../../../postflop-solver", features = ["custom-alloc"], default-features = false }
+wasm-bindgen = "0.2.88"
 
 [profile.release]
 codegen-units = 1

@@ -148,7 +148,6 @@
         isAfterAllin ||
         betAmount < minAmount ||
         betAmount > maxAmount ||
-        betAmount % 1 !== 0 ||
         existingAmounts.includes(betAmount)
       "
       @click="addBetAction"
@@ -169,9 +168,10 @@
       <input
         v-model="betAmount"
         type="number"
+        step="any"
         :class="
           'w-24 ml-2 px-2 py-1 rounded-lg text-sm text-center ' +
-          (betAmount < minAmount || betAmount > maxAmount || betAmount % 1 !== 0
+          (betAmount < minAmount || betAmount > maxAmount
             ? 'input-error'
             : '')
         "
