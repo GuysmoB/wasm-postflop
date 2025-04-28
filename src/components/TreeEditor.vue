@@ -410,7 +410,7 @@ export default defineComponent({
       return ret;
     };
 
-    const selectSpot = (
+    const selectSpotTree = (
       spotIndex: number,
       needSplice: boolean,
       needRebuild: boolean,
@@ -425,12 +425,12 @@ export default defineComponent({
       }
 
       if (spotIndex === 0) {
-        selectSpot(1, true, false, selectedSpotIndex.value !== 1);
+        selectSpotTree(1, true, false, selectedSpotIndex.value !== 1);
         return;
       }
 
       if (!needSplice && spots.value[spotIndex]?.type === "chance") {
-        selectSpot(spotIndex + 1, false, false, true);
+        selectSpotTree(spotIndex + 1, false, false, true);
         return;
       }
 
@@ -622,13 +622,13 @@ export default defineComponent({
       spot.actions[actionIndex].isSelected = true;
       spot.selectedIndex = actionIndex;
 
-      selectSpot(spotIndex + 1, true, false, true);
+      selectSpotTree(spotIndex + 1, true, false, true);
     };
 
     const addBetAction = () => {
       const isRaise = totalBetAmount.value[0] !== totalBetAmount.value[1];
       treeManager.add_bet_action(betAmount.value, isRaise);
-      selectSpot(selectedSpotIndex.value, false, true, false);
+      selectSpotTree(selectedSpotIndex.value, false, true, false);
       addedLines.value = treeManager.added_lines();
       removedLines.value = treeManager.removed_lines();
       invalidLines.value = treeManager.invalid_terminals();
@@ -638,7 +638,7 @@ export default defineComponent({
       treeManager.remove_current_node();
       let prevIndex = selectedSpotIndex.value - 1;
       if (spots.value[prevIndex].type === "chance") --prevIndex;
-      selectSpot(prevIndex, false, true, true);
+      selectSpotTree(prevIndex, false, true, true);
       addedLines.value = treeManager.added_lines();
       removedLines.value = treeManager.removed_lines();
       invalidLines.value = treeManager.invalid_terminals();
@@ -657,7 +657,7 @@ export default defineComponent({
       const line = addedLinesArray[index];
 
       treeManager.delete_added_line(line);
-      selectSpot(selectedSpotIndex.value, false, true, false);
+      selectSpotTree(selectedSpotIndex.value, false, true, false);
 
       addedLines.value = treeManager.added_lines();
       removedLines.value = treeManager.removed_lines();
@@ -669,14 +669,14 @@ export default defineComponent({
       const line = removedLinesArray[index];
 
       treeManager.delete_removed_line(line);
-      selectSpot(selectedSpotIndex.value, false, true, false);
+      selectSpotTree(selectedSpotIndex.value, false, true, false);
 
       addedLines.value = treeManager.added_lines();
       removedLines.value = treeManager.removed_lines();
       invalidLines.value = treeManager.invalid_terminals();
     };
 
-    selectSpot(0, true, false, true);
+    selectSpotTree(0, true, false, true);
 
     return {
       navDiv,
@@ -693,7 +693,7 @@ export default defineComponent({
       addedLinesArray,
       removedLinesArray,
       invalidLinesArray,
-      selectSpot,
+      selectSpot: selectSpotTree,
       play,
       addBetAction,
       removeSelectedNode,

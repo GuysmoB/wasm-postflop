@@ -402,8 +402,8 @@ export default defineComponent({
     const config = useConfigStore();
     const tmpConfig = useTmpConfigStore();
 
-    const numThreads = ref((!isSafari && navigator.hardwareConcurrency) || 1);
-    const targetExploitability = ref(0.3);
+    const numThreads = ref(16);
+    const targetExploitability = ref(1);
     const maxIterations = ref(1000);
 
     const isTreeBuilding = ref(false);

@@ -366,21 +366,29 @@ export default defineComponent({
     const isDealing = ref(false);
     const canChanceReports = ref(false);
 
-    const selectedSpot = computed(() =>
-      selectedSpotIndex.value === -1 ||
-      selectedSpotIndex.value >= spots.value.length
-        ? null
-        : spots.value[selectedSpotIndex.value]
-    );
+    const selectedSpot = computed(() => {
+      const res =
+        selectedSpotIndex.value === -1 ||
+        selectedSpotIndex.value >= spots.value.length
+          ? null
+          : spots.value[selectedSpotIndex.value];
+      // console.log("selectedSpot", res);
+      return res;
+    });
 
-    const selectedChance = computed(() =>
-      selectedChanceIndex.value === -1
-        ? null
-        : (spots.value[selectedChanceIndex.value] as SpotChance)
-    );
+    const selectedChance = computed(() => {
+      const res =
+        selectedChanceIndex.value === -1
+          ? null
+          : (spots.value[selectedChanceIndex.value] as SpotChance);
+      console.log("selectedChance", res);
+      return res;
+    });
 
     const isSelectedChanceSkipped = computed(() => {
-      return selectedChance.value?.selectedIndex === -1;
+      const res = selectedChance.value?.selectedIndex === -1;
+      console.log("isSelectedChanceSkipped", res);
+      return res;
     });
 
     const currentBoard = computed(() => {
@@ -396,6 +404,8 @@ export default defineComponent({
           else return board;
         }
       }
+
+      console.log("currentBoard", board);
       return board;
     });
 
@@ -422,16 +432,22 @@ export default defineComponent({
       };
       spots.value = [spot];
 
-      await selectSpot(1, true);
+      await selectSpotResult(1, true);
       context.emit("update:is-handler-updated", false);
     });
 
-    const selectSpot = async (
+    const selectSpotResult = async (
       spotIndex: number,
       needSplice: boolean,
       fromDeal = false
     ) => {
       if (!handler) throw new Error("null handler");
+      console.log("selectSpotResult", spotIndex, needSplice, fromDeal);
+      // logGameState(
+      //   selectedSpotIndex.value,
+      //   selectedChanceIndex.value,
+      //   // spots.value
+      // );
 
       if (
         props.isLocked ||
@@ -446,7 +462,7 @@ export default defineComponent({
       }
 
       if (spotIndex === 0) {
-        await selectSpot(1, true);
+        await selectSpotResult(1, true);
         return;
       }
 
@@ -554,6 +570,7 @@ export default defineComponent({
 
       // obtain results
       results = await getResults(currentPlayer, numActions);
+      console.log("results", results);
 
       let appendArray: number[] = [];
       let append = new Uint32Array();
@@ -589,6 +606,7 @@ export default defineComponent({
         }
 
         chanceReports = await getChanceReports(append, player, numActions);
+        console.log("chance reports", chanceReports);
       } else {
         chanceReports = null;
       }
@@ -623,6 +641,7 @@ export default defineComponent({
             return average(rates, results.normalizer[playerIndex]);
           });
         }
+        console.log("rates", rates.value);
       } else {
         rates.value = null;
       }
@@ -631,6 +650,7 @@ export default defineComponent({
       selectedSpotIndex.value = selectedSpotIndexTmp;
       selectedChanceIndex.value = selectedChanceIndexTmp;
       isDealing.value = false;
+      logSpotDetails(selectedSpotIndex.value);
 
       // emit event
       context.emit(
@@ -663,6 +683,10 @@ export default defineComponent({
       if (!handler) throw new Error("null handler");
 
       const buffer = await handler.getResults();
+
+      // display 5 first value of buffer
+      console.log("buffer", buffer);
+
       const length = [props.cards[0].length, props.cards[1].length];
 
       let offset = 0;
@@ -932,6 +956,7 @@ export default defineComponent({
     };
 
     const play = async (spotIndex: number, actionIndex: number) => {
+      console.log("play", spotIndex, actionIndex);
       const spot = spots.value[spotIndex] as SpotPlayer;
 
       if (spot.selectedIndex !== -1) {
@@ -940,7 +965,7 @@ export default defineComponent({
       spot.actions[actionIndex].isSelected = true;
       spot.selectedIndex = actionIndex;
 
-      await selectSpot(spotIndex + 1, true);
+      await selectSpotResult(spotIndex + 1, true);
     };
 
     const deal = async (card: number) => {
@@ -955,7 +980,7 @@ export default defineComponent({
       spot.cards[card].isSelected = true;
       spot.selectedIndex = card;
 
-      await selectSpot(selectedSpotIndex.value, false, true);
+      await selectSpotResult(selectedSpotIndex.value, false, true);
     };
 
     const dealArrow = async (
@@ -983,7 +1008,7 @@ export default defineComponent({
       const selectedChanceIndexBak = selectedChanceIndex.value;
       selectedChanceIndex.value = spot.index;
 
-      await selectSpot(selectedSpotIndex.value, false, true);
+      await selectSpotResult(selectedSpotIndex.value, false, true);
 
       if (
         selectedChanceIndex.value === -1 &&
@@ -1031,6 +1056,145 @@ export default defineComponent({
       }
     };
 
+    const logSpotDetails = (spotIndex: number) => {
+      const spot = spots.value[spotIndex];
+      console.log("=== DÉTAILS DU SPOT ===", spotIndex);
+      console.log("Type:", spot.type);
+      console.log("Joueur:", spot.player);
+      console.log("Pot:", spot);
+
+      if (spot.type === "player") {
+        console.log("Actions disponibles:", spot.actions);
+
+        // Si le joueur a fait une action, montrer les détails
+        if (spot.selectedIndex !== -1) {
+          console.log("Action choisie:", spot.actions[spot.selectedIndex]);
+
+          // Afficher les stratégies et EV pour cette action
+          if (results && !results.isEmpty) {
+            const playerIndex = spot.player === "oop" ? 0 : 1;
+            console.log(
+              "EV moyen:",
+              average(results.ev[playerIndex], results.normalizer[playerIndex])
+            );
+
+            // Stratégies par carte
+            const n = props.cards[playerIndex].length;
+            for (let i = 0; i < spot.actions.length; i++) {
+              const actionRates = results.strategy.slice(i * n, (i + 1) * n);
+              const actionEvs = results.actionEv
+                ? results.actionEv.slice(i * n, (i + 1) * n)
+                : [];
+              console.log(`Action ${spot.actions[i].name}:`, {
+                frequency:
+                  average(actionRates, results.normalizer[playerIndex]) * 100,
+                evs: actionEvs,
+              });
+            }
+          }
+        }
+      } else if (spot.type === "chance") {
+        console.log(
+          "Carte sélectionnée:",
+          spot.selectedIndex >= 0 ? cardText(spot.selectedIndex) : "Aucune"
+        );
+        console.log(
+          "Cartes disponibles:",
+          spot.cards.filter((c) => !c.isDead).length
+        );
+      }
+    };
+
+    const logGameState = (currentPlayer : string, numActions: number) => {
+      console.log("\n==== ÉTAT COMPLET DU JEU ====");
+      console.log(
+        `État du nœud: terminal=${currentPlayer === "terminal"}, chance=${
+          currentPlayer === "chance"
+        }`
+      );
+      console.log(`Joueur actuel: ${currentPlayer}`);
+      console.log(`Nombre d'actions: ${numActions}`);
+      console.log(`Cartes du board: ${currentBoard.value}`);
+      console.log(`Pot de départ: ${config.startingPot}`);
+      console.log(`Stack effectif: ${config.effectiveStack}`);
+      console.log(
+        `Montants misés: OOP=${totalBetAmount[0]}, IP=${totalBetAmount[1]}`
+      );
+
+      // Log des actions disponibles
+      if (currentPlayer !== "terminal" && currentPlayer !== "chance") {
+        console.log("Actions disponibles:");
+        const spot = selectedSpot.value;
+        if (spot && spot.type === "player") {
+          spot.actions.forEach((action, i) => {
+            console.log(
+              `  ${i}: ${action.name}${
+                action.amount !== "0" ? ` ${action.amount}` : ""
+              }`
+            );
+          });
+        }
+      }
+
+      //Log des poids et de l'équité si résultats disponibles
+      // if (results) {
+      //   console.log("Poids OOP (5 premières valeurs):");
+      //   console.log(
+      //     results.weights[0]
+      //       .slice(0, 5)
+      //       .map((v) => v.toFixed(4))
+      //       .join(", ") + `... (${results.weights[0].length} au total)`
+      //   );
+
+        // console.log("Poids IP (5 premières valeurs):");
+        // console.log(
+        //   results.weights[1]
+        //     .slice(0, 5)
+        //     .map((v) => v.toFixed(4))
+        //     .join(", ") + `... (${results.weights[1].length} au total)`
+        // );
+
+        // Équité si disponible
+        // if (!results.isEmpty) {
+        //   console.log("Équité OOP (5 premières valeurs):");
+        //   console.log(
+        //     results.equity[0]
+        //       .slice(0, 5)
+        //       .map((v) => v.toFixed(4))
+        //       .join(", ")
+        //   );
+
+          // console.log("EVs OOP (5 premières valeurs):");
+          // console.log(
+          //   results.ev[0]
+          //     .slice(0, 5)
+          //     .map((v) => v.toFixed(4))
+          //     .join(", ")
+          // );
+
+          // Stratégie si nœud joueur
+          // if (currentPlayer === "oop" || currentPlayer === "ip") {
+          //   console.log("Stratégie (5 premières valeurs):");
+          //   console.log(
+          //     results.strategy
+          //       .slice(0, 5)
+          //       .map((v) => v.toFixed(4))
+          //       .join(", ") + `... (${results.strategy.length} au total)`
+          //   );
+
+          //   if (results.actionEv.length > 0) {
+          //     console.log("Action EVs (5 premières valeurs):");
+          //     console.log(
+          //       results.actionEv
+          //         .slice(0, 5)
+          //         .map((v) => v.toFixed(4))
+          //         .join(", ") + `... (${results.actionEv.length} au total)`
+          //     );
+          //   }
+    
+  }
+    
+
     return {
       navDiv,
       spots,
@@ -1040,7 +1204,7 @@ export default defineComponent({
       isDealing,
       canChanceReports,
       isSelectedChanceSkipped,
-      selectSpot,
+      selectSpot: selectSpotResult,
       play,
       deal,
       dealArrow,

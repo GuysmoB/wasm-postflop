@@ -529,6 +529,8 @@ export default defineComponent({
             barWidth: "normalized",
           });
 
+    // console.log('Results:', props.results);
+
     const optionsStorageKey = `display-options-table-${props.tableMode}`;
     const savedDisplayOptions = localStorage.getItem(optionsStorageKey);
 
@@ -568,6 +570,7 @@ export default defineComponent({
     window.addEventListener("resize", assignTableHeight);
 
     const pairText = (pair: number) => {
+      // console.log("pairText", pair);
       const card1 = pair & 0xff;
       const card2 = pair >>> 8;
       if (card2 !== 0xff) {
@@ -726,6 +729,7 @@ export default defineComponent({
         }
       }
 
+      // console.log("columns", ret);
       return ret;
     });
 
@@ -815,6 +819,8 @@ export default defineComponent({
         }
       }
 
+      // console.log("resultsFiltered", ret);
+
       return ret;
     });
 
@@ -841,6 +847,8 @@ export default defineComponent({
       }
 
       if (order === "desc") ret.reverse();
+
+      // console.log("resultsSorted", ret);
       return ret;
     });
 
@@ -890,6 +898,11 @@ export default defineComponent({
     };
 
     const resultsRendered = computed(() => {
+      const res = resultsSorted.value.slice(
+        Math.max(emptyBufferTop.value, 0),
+        emptyBufferTop.value + numDisplayedRows.value + 4 * bufferUnit
+      );
+      // console.log("resultsRendered", res);
       return resultsSorted.value.slice(
         Math.max(emptyBufferTop.value, 0),
         emptyBufferTop.value + numDisplayedRows.value + 4 * bufferUnit
@@ -910,6 +923,7 @@ export default defineComponent({
 
     const summary = computed(() => {
       const results = resultsFiltered.value;
+
       if (!props.results || results.length === 0) return null;
 
       let normalizer = 0;
@@ -1005,6 +1019,8 @@ export default defineComponent({
 
         if (numActions.value > 0) {
           const actions = (props.selectedSpot as SpotPlayer).actions;
+          console.log("actions", actions);
+
           for (let i = actions.length - 1; i >= 0; --i) {
             const action = actions[i];
             const amount = action.amount === "0" ? "" : ` ${action.amount}`;

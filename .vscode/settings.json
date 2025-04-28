@@ -4,5 +4,6 @@
     "rust/range/Cargo.toml",
     "rust/solver-mt/Cargo.toml",
     "rust/tree/Cargo.toml"
-  ]
+  ],
+  "files.eol": "auto"
 }

@@ -17,7 +17,7 @@
             src="../assets/GitHub-Mark-Light-32px.png"
             class="inline-block w-5 h-5 mr-2.5"
           />
-          GitHub
+          GitHub test
         </a>
       </div>
 

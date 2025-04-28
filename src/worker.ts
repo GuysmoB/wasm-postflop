@@ -118,7 +118,9 @@ const createHandler = (mod: Mod) => {
     },
 
     getResults() {
-      return this.game.get_results();
+      console.log("game", this.game);
+      const res = this.game.get_results();
+      return res;
     },
 
     getChanceReports(append: Uint32Array, numActions: number) {
